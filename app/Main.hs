@@ -17,7 +17,7 @@ data Ship = Ship { shipMass :: Double
                  }
 
 data Model = Model { modelShip :: Ship
-                   , modelAttractor :: (Double, C)
+                   , modelAttractors :: [(Double, C)]
                    }
 
 
@@ -55,13 +55,13 @@ crosshair = pictures [vert, rotate 90 vert]
 
 
 render :: Model -> Picture
-render Model{modelShip=ship, modelAttractor=(_,aPos)}
-  = pictures [forceArrow, controlArrow, ball, attractor, target, errPic]
+render Model{modelShip=ship, modelAttractors=attractors}
+  = pictures [forceArrow, controlArrow, ball, attractorPics, target, errPic]
   where
     move (x :+ y) = translate (realToFrac x) (realToFrac y)
     toShip = move $ shipPos ship
     ball = color (greyN 0.5) $ toShip $ thickCircle 0 30
-    attractor = move aPos $ color blue crosshair
+    attractorPics = pictures $ map (\(_,pos) -> move pos $ color blue crosshair) attractors
     target = move (pidTarget $ shipController ship) $ color (dark . dark $ green) $ circle 5
     err = pidTarget (shipController ship) - shipPos ship
     errPic = translate (-400) 300 $ color white $ scale 0.25 0.25 $ pictures
@@ -90,7 +90,7 @@ initial = Model { modelShip = Ship { shipMass = 1
                                    , shipForce = 0 :+ 0
                                    , shipControl = 0 :+ 0
                                    }
-                , modelAttractor = (15000, 0 :+ 0)
+                , modelAttractors = [(15000, 0 :+ 200), (15000, 0 :+ (-200)), (15000, (-300) :+ 150)]
                 }
   where
     initialPos = 100 :+ 100
@@ -100,8 +100,8 @@ initial = Model { modelShip = Ship { shipMass = 1
 -------------------- Updates ---------------
 
 
-attractionForce :: Double -> C -> Ship -> C
-attractionForce mass pos ship = direction * realToFrac scalar
+attractionForce :: Ship -> (Double, C) -> C
+attractionForce ship (mass, pos) = direction * realToFrac scalar
   where
     direction = pos - shipPos ship
     scalar = mass * shipMass ship / ( magnitude direction ^ 3 )
@@ -122,10 +122,10 @@ step view deltaFloat rawModel =
 
 
 environmentForces :: Model -> Model
-environmentForces model@Model{modelShip=ship, modelAttractor=(m,x)}
+environmentForces model@Model{modelShip=ship, modelAttractors=attractors}
   = model{modelShip=ship{shipForce=force}}
   where
-    force = attractionForce m x ship
+    force = sum $ map (attractionForce ship) attractors
 
 
 limitMagnitude :: Double -> C -> C
