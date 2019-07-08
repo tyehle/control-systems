@@ -25,17 +25,18 @@ data Model = Model { modelShip :: Ship
 
 
 arrow :: Real a => (a, a) -> (a, a) -> (Color, Color) -> a -> Picture
-arrow wBound lBound (low, high) x = color c shape
+arrow wBound lBound (low, high) x = color c $ pictures [cap, point]
   where
     interpolate (a, b) = b*x + a*(1-x)
     w = realToFrac $ interpolate wBound
     l = realToFrac $ interpolate lBound
-    shape = polygon [(0, w/2), (0, (-w)/2), (l, 0)]
+    point = polygon [(0, w/2), (0, (-w)/2), (l, 0)]
+    cap = circleSolid (w/2)
     c = mixColors (realToFrac (1-x)) (realToFrac x) low high
 
 
 controlGraphic :: Real a => a -> Picture
-controlGraphic = arrow (5, 20) (15, 100) (low, high)
+controlGraphic = translate 20 0 . arrow (5, 20) (15, 100) (low, high)
   where
     low  = makeColorI 0 64 192 255
     high = makeColorI 0 160 192 255
@@ -54,13 +55,17 @@ crosshair = pictures [vert, rotate 90 vert]
     vert = line [(0, 5), (0, -5)]
 
 
+shipGraphic :: Picture
+shipGraphic = polygon [(-5,0), (-10, 15), (25, 0), (-10, -15)]
+
+
 render :: Model -> Picture
 render Model{modelShip=ship, modelAttractors=attractors}
-  = pictures [forceArrow, controlArrow, ball, attractorPics, target, errPic]
+  = pictures [forceArrow, controlArrow, shipPic, attractorPics, target, errPic]
   where
     move (x :+ y) = translate (realToFrac x) (realToFrac y)
     toShip = move $ shipPos ship
-    ball = color (greyN 0.5) $ toShip $ thickCircle 0 30
+    shipPic = color (greyN 0.5) $ toShip $ rotateRad (realToFrac $ phase (shipControl ship)) shipGraphic
     attractorPics = pictures $ map (\(_,pos) -> move pos $ color blue crosshair) attractors
     target = move (pidTarget $ shipController ship) $ color (dark . dark $ green) $ circle 5
     err = pidTarget (shipController ship) - shipPos ship
