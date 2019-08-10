@@ -90,7 +90,12 @@ initial :: Model
 initial = Model { modelShip = Ship { shipMass = 1
                                    , shipPos = initialPos
                                    , shipVel = 4 :+ (-5)
-                                   , shipController = pidController (0.01, 0.0002, 0.15) target (\e -> magnitude e < 100) initialPos
+                                   , shipController = pidController
+                                                        (0.01, 0.0002, 0.15)
+                                                        target
+                                                        (predicateFilter $ (< 100) . magnitude)
+                                                        noFilter
+                                                        initialPos
                                    , shipControlMax = 1
                                    , shipForce = 0 :+ 0
                                    , shipControl = 0 :+ 0
@@ -109,11 +114,11 @@ attractionForce :: Ship -> (Double, C) -> C
 attractionForce ship (mass, pos) = direction * realToFrac scalar
   where
     direction = pos - shipPos ship
-    scalar = mass * shipMass ship / ( magnitude direction ^ 3 )
+    scalar = mass * shipMass ship / ( magnitude direction ^ (3::Integer) )
 
 
 step :: ViewPort -> Float -> Model -> Model
-step view deltaFloat rawModel =
+step _ deltaFloat rawModel =
   m{modelShip=ship{shipPos=pos', shipVel=vel', shipForce=ef, shipControl=cf}}
   where
     delta = realToFrac deltaFloat * 10

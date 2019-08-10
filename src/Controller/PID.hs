@@ -3,33 +3,38 @@
 module Controller.PID where
 
 
-pControl :: Num a => (a, b, b) -> a -> a
-pControl (kp, _, _) err = kp * err
-
-
-piControl :: Num a => (a, a, b) -> a -> a
-piControl (kp, ki, _) err = kp * err + ki * 0
-
-
 data PID a = PID { pidConstants :: (a, a, a)
                  , pidTarget :: a
-                 , pidIntFilter :: a -> Bool
+                 , pidIntTransform :: (a, a) -> a
+                 , pidDerTransform :: (a, a) -> a
                  , pidErrInt :: a
                  , pidPrevPos :: a
                  }
 
 
-pidController :: Fractional a => (a, a, a) -> a -> (a -> Bool) -> a -> PID a
-pidController constants target intFilter initialPos = PID constants target intFilter 0 initialPos
-  where
-    err = target - initialPos
+lowPassFilter :: Num a => a -> (a, a) -> a
+lowPassFilter coef (prev, current) = coef * prev + (1-coef) * current
+
+
+noFilter :: (a, a) -> a
+noFilter = snd
+
+
+predicateFilter :: Num a => (a -> Bool) -> (a, a) -> a
+predicateFilter predicate (_, v)
+  | predicate v = v
+  | otherwise = 0
+
+
+pidController :: Fractional a => (a, a, a) -> a -> ((a, a) -> a) -> ((a, a) -> a) -> a -> PID a
+pidController constants target intTransform derTransform initialPos = PID constants target intTransform derTransform 0 initialPos
 
 
 getControl :: (Fractional a, Real t) => t -> a -> PID a -> (a, PID a)
-getControl dt pos pid@PID{pidConstants=(kp, ki, kd), pidTarget, pidIntFilter, pidErrInt, pidPrevPos}
+getControl dt pos pid@PID{pidConstants=(kp, ki, kd), pidTarget, pidIntTransform, pidErrInt, pidPrevPos}
   = (control, pid{pidErrInt=errInt', pidPrevPos=pos})
   where
     err = pidTarget - pos
-    errInt' = pidErrInt + if pidIntFilter err then realToFrac dt * err else 0
+    errInt' = pidErrInt + pidIntTransform (pidErrInt, realToFrac dt * err)
     errDeriv = (pidPrevPos - pos) / realToFrac dt
     control = kp*err + ki*errInt' + kd*errDeriv
