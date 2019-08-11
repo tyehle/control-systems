@@ -21,9 +21,13 @@ noFilter = snd
 
 
 predicateFilter :: Num a => (a -> Bool) -> (a, a) -> a
-predicateFilter predicate (_, v)
-  | predicate v = v
+predicateFilter predicate (_, current)
+  | predicate current = current
   | otherwise = 0
+
+
+clippingFilter :: Num a => (a -> a) -> (a, a) -> a
+clippingFilter clip (prev, current) = clip (prev + current) - prev
 
 
 pidController :: Fractional a => (a, a, a) -> a -> ((a, a) -> a) -> ((a, a) -> a) -> a -> PID a
