@@ -21,11 +21,11 @@ description:         Please see the README on GitHub at <https://github.com/tyeh
 
 dependencies:
 - base >= 4.7 && < 5
+- gloss
+- mtl
 
 library:
   source-dirs: src
-  dependencies:
-    - mtl
 
 executables:
   control-systems-exe:
@@ -37,7 +37,6 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - control-systems
-    - gloss
 
 tests:
   control-systems-test:

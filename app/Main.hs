@@ -4,6 +4,7 @@ import Data.Complex
 import Graphics.Gloss.Interface.Pure.Simulate
 
 import Controller.PID
+import ViewUtil
 
 type C = Complex Double
 
@@ -22,17 +23,6 @@ data Model = Model { modelShip :: Ship
 
 
 -------------------- Graphics ---------------
-
-
-arrow :: Real a => (a, a) -> (a, a) -> (Color, Color) -> a -> Picture
-arrow wBound lBound (low, high) x = color c $ pictures [cap, point]
-  where
-    interpolate (a, b) = b*x + a*(1-x)
-    w = realToFrac $ interpolate wBound
-    l = realToFrac $ interpolate lBound
-    point = polygon [(0, w/2), (0, (-w)/2), (l, 0)]
-    cap = circleSolid (w/2)
-    c = mixColors (realToFrac (1-x)) (realToFrac x) low high
 
 
 controlGraphic :: Real a => a -> Picture
@@ -77,10 +67,6 @@ render Model{modelShip=ship, modelAttractors=attractors}
     arrowScale = 1
     forceArrow   = toShip $ rotateRad (realToFrac $ phase (shipForce ship) + pi) $ forceGraphic (min 1 $ magnitude (shipForce ship) * arrowScale)
     controlArrow = toShip $ rotateRad (realToFrac $ phase (shipControl ship) + pi) $ controlGraphic (min 1 $ magnitude (shipControl ship) * arrowScale)
-
--- | rotate by an angle in radians counter clockwise
-rotateRad :: Float -> Picture -> Picture
-rotateRad = rotate . negate . (*(180/pi))
 
 
 -------------------- Initial ---------------
