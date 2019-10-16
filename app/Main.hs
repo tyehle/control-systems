@@ -5,6 +5,7 @@ import Graphics.Gloss.Interface.Pure.Simulate
 
 import Controller.PID
 import ViewUtil
+import BoatSim
 
 type C = Complex Double
 
@@ -141,8 +142,9 @@ controlForces dt ship = ship{shipControl=limited, shipController=pid'}
 
 
 main :: IO ()
-main = simulate display background fps initial render step
-  where
-    display = InWindow "Control Systems" (1200, 800) (100, 100)
-    background = black
-    fps = 60
+main = boatMain
+-- main = simulate display background fps initial render step
+--   where
+--     display = InWindow "Control Systems" (1200, 800) (100, 100)
+--     background = black
+--     fps = 60
