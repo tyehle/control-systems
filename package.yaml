@@ -21,8 +21,15 @@ description:         Please see the README on GitHub at <https://github.com/tyeh
 
 dependencies:
 - base >= 4.7 && < 5
+- containers
+- JuicyPixels
+- GLFW-b
 - gloss
+- gloss-rendering
+- GLUT
 - mtl
+- OpenGLRaw
+- vector
 
 library:
   source-dirs: src

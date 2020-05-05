@@ -23,7 +23,7 @@ initial :: ZambiniSim
 initial = ZambiniSim { zambini = Zambini { m = 0.1
                                          , i = 1
                                          , r = 1
-                                         , fMax = 30
+                                         , fMax = 300
                                          , f1 = 0
                                          , f2 = 0
                                          , x = 0
@@ -31,7 +31,7 @@ initial = ZambiniSim { zambini = Zambini { m = 0.1
                                          , theta = 0
                                          , omega = 0
                                          }
-                     , xPID = pidController (0.5, 0, 10) target noFilter noFilter 0
+                     , xPID = pidController (3, 0.01, 4) target noFilter noFilter 0
                      , thetaPID = pidController (5, 0, 8) 0 noFilter noFilter 0
                      }
   where
